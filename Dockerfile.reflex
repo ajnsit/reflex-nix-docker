@@ -1,0 +1,15 @@
+FROM basenix
+MAINTAINER Anupam Jain
+
+# Make sure you are not root
+USER snow
+
+# Install reflex
+WORKDIR /home/snow
+RUN git clone https://github.com/reflex-frp/reflex-platform
+WORKDIR /home/snow/reflex-platform
+RUN ./try-reflex
+
+# Needed because otherwise it doesn't login
+# Just switch to a normal user to do work when logged in - su snow
+USER root

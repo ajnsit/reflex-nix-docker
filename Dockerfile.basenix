@@ -1,0 +1,40 @@
+FROM phusion/baseimage:0.9.19
+MAINTAINER Anupam Jain
+
+# Use baseimage-docker's init system.
+CMD ["/sbin/my_init"]
+
+# Git
+RUN apt-get update
+RUN apt-get install -y git
+
+# BZIP
+RUN apt-get install -y bzip2
+
+# Clean up APT cache
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Add unprivileged user
+RUN useradd -c 'Jon Snow' -m -d /home/snow -s /bin/bash snow
+
+# Give unprivileged access to /nix so sudo is not needed
+RUN mkdir -m 0755 /nix && chown snow /nix
+
+# Install nix as regular user
+USER snow
+ENV USER snow
+ENV HOME /home/snow
+WORKDIR /home/snow
+RUN curl https://nixos.org/nix/install | sh
+USER root
+
+# Nix installer adds nix shell setup to .profile instead of to .bashrc
+# TODO: There must be a better way of doing this
+RUN echo "source /home/snow/.nix-profile/etc/profile.d/nix.sh" >> /home/snow/.bashrc
+
+# Expose port 8000
+EXPOSE 8000
+
+# Needed because otherwise it doesn't login
+# Just switch to a normal user to do work when logged in - su snow
+USER root
